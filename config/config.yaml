@@ -1,0 +1,74 @@
+# =============================================================================
+# Pipeline Configuration
+# All paths are relative to the project root. No paths are hardcoded in code;
+# every script resolves paths through config/settings.py at runtime.
+# =============================================================================
+
+paths:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  logs_dir: "logs"
+  sql_dir: "sql"
+
+  hvbp_raw_file: "hvbp_total_performance.csv"
+  hospital_info_raw_file: "hospital_general_info.csv"
+
+  processed_file: "hospital_scores_processed.csv"
+  validation_report_file: "validation_report.csv"
+
+database:
+  # Local SQLite is used for a fully self-contained, runnable demo.
+  # Swap `dialect` + `connection_string` to point at Postgres/Snowflake
+  # in production without touching any pipeline code.
+  dialect: "sqlite"
+  connection_string: "sqlite:///data/processed/hospital_scores.db"
+  target_table: "hospital_scores"
+
+logging:
+  level: "INFO"
+  log_file: "pipeline.log"
+  max_bytes: 1048576   # 1 MB rotating log
+  backup_count: 3
+
+validation:
+  # Any score outside this range is flagged as an anomaly, not silently dropped.
+  min_valid_score: 0
+  max_valid_score: 100
+  required_columns:
+    - "provider_id"
+    - "hospital_name"
+    - "state"
+    - "total_performance_score"
+
+financial_model:
+  # Assumed baseline Medicare revenue per hospital used to translate the
+  # HVBP payment adjustment into a dollar estimate. This is a documented
+  # simplifying assumption for demonstration purposes, not CMS's actual
+  # payment formula, which factors in exchange-rate calculations unique
+  # to each hospital's base DRG payments.
+  assumed_base_medicare_revenue: 10000000
+
+  # Score thresholds -> adjustment rate (percentage of base revenue).
+  #
+  # CMS Total Performance Scores are a weighted composite (0-100 scale) but
+  # in practice cluster far below 100 - the FY2026 HVBP file has a mean of
+  # ~31 and a 90th percentile around 46.5. A fixed 60/80/90 cutoff (fine for
+  # a 0-100 grading-curve assumption) would misclassify almost every real
+  # hospital as high risk. These tiers are instead calibrated to the actual
+  # score distribution (25th/75th/90th percentiles of the FY2026 file), so
+  # "High Risk" means "bottom quartile relative to peers" rather than an
+  # arbitrary absolute number. Recompute these from a new file's quantiles
+  # (see README) whenever a new fiscal year's data is loaded.
+  adjustment_tiers:
+    - min_score: 46.5   # ~90th percentile
+      adjustment_rate: 0.02
+      label: "Excellent"
+    - min_score: 37.75  # ~75th percentile
+      adjustment_rate: 0.01
+      label: "Good"
+    - min_score: 22.33  # ~25th percentile
+      adjustment_rate: 0.0
+      label: "Average"
+    - min_score: 0
+      adjustment_rate: -0.01
+      label: "High Risk"
