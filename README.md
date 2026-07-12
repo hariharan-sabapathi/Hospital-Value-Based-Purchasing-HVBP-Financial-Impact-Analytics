@@ -177,9 +177,7 @@ Validation reports are exported for auditing.
 
 ### 6. Analyze
 
-Execute SQL analytics using: - Common Table Expressions (CTEs) - Window Functions - Hospital Rankings - Quartile Analysis - National Performance Comparisons
-
-Results are exported for Power BI.
+Execute SQL analytics using: - Common Table Expressions (CTEs) - Window Functions - Hospital Rankings - Quartile Analysis - National Performance Comparisons. Results are exported for Power BI.
 
 ------------------------------------------------------------------------
 
@@ -219,19 +217,6 @@ The dashboard consists of three pages:
 -   High-Risk Hospitals
 -   Estimated Incentive Changes
 -   Performance Gap Analysis
-
-------------------------------------------------------------------------
-
-## Financial Impact Model
-
-  Total Performance Score     Adjustment Rate
-  ------------------------- -----------------
-  ≥ 90                                  +2.0%
-  80--89                                +1.0%
-  60--79                                 0.0%
-  \< 60                                 −1.0%
-
-Adjustment tiers and assumed revenue values are configurable through `config/config.yaml`.
 
 ------------------------------------------------------------------------
 
