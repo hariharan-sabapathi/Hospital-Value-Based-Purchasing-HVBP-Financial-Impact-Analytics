@@ -1,0 +1,5 @@
+reimbursement_risk,hospital_count,avg_score,total_projected_adjustment
+High Risk,608,17.81,-60800000.0
+Average,1232,29.43,0.0
+Good,367,41.5,36700000.0
+Excellent,248,54.47,49600000.0

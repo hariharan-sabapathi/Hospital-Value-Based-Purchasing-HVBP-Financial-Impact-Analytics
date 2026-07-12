@@ -1,0 +1,27 @@
+# Column Null Summary
+column,missing_count
+fiscal_year,0
+provider_id,0
+hospital_name,0
+address,0
+city,0
+state,0
+zip_code,0
+county,0
+clinical_score_unweighted,68
+clinical_score,68
+patient_experience_score_unweighted,32
+patient_experience_score,32
+safety_score_unweighted,55
+safety_score,55
+efficiency_score_unweighted,1
+efficiency_score,1
+total_performance_score,0
+
+# Validation Check Summary
+check_name,passed,failure_count,details
+required_columns_present,True,0,All required columns present
+missing_provider_ids,True,0,0 rows with null provider_id
+duplicate_provider_ids,True,0,0 duplicate provider_id rows
+null_total_performance_scores,True,0,0 rows with null total_performance_score
+score_within_valid_range,True,0,"0 rows outside [0.0, 100.0]"
