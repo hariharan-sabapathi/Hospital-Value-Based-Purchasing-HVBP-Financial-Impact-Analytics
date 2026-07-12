@@ -1,0 +1,36 @@
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | === Pipeline run started ===
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Loading raw file: /home/claude/financial-reimbursement/data/raw/hvbp_total_performance.csv
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Loaded 2455 rows, 17 columns from hvbp_total_performance.csv
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | No separate hospital reference file at /home/claude/financial-reimbursement/data/raw/hospital_general_info.csv; assuming the HVBP file is self-contained.
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Dropped 0 duplicate provider rows from HVBP data
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | HVBP file is self-contained (hospital fields already present); skipping reference-table merge.
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | [PASS] required_columns_present - All required columns present
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | [PASS] missing_provider_ids - 0 rows with null provider_id
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | [PASS] duplicate_provider_ids - 0 duplicate provider_id rows
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | [PASS] null_total_performance_scores - 0 rows with null total_performance_score
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | [PASS] score_within_valid_range - 0 rows outside [0.0, 100.0]
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Validation report written to /home/claude/financial-reimbursement/data/processed/validation_report.csv
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Reimbursement risk distribution: {'Average': 1232, 'High Risk': 608, 'Good': 367, 'Excellent': 248}
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Total projected revenue at risk: $-60800000.00
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Processed dataset written to /home/claude/financial-reimbursement/data/processed/hospital_scores_processed.csv
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Schema applied from schema.sql
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Loaded 2455 rows into table 'hospital_scores'
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: top_20_hospitals
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: bottom_20_hospitals
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: state_rank
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: performance_quartiles
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: state_averages
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: below_national_average
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: reimbursement_risk_summary
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: financial_impact_matrix
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Running analysis query: rolling_state_percentile
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'top_20_hospitals' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/top_20_hospitals.csv (20 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'bottom_20_hospitals' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/bottom_20_hospitals.csv (20 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'state_rank' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/state_rank.csv (2455 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'performance_quartiles' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/performance_quartiles.csv (2455 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'state_averages' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/state_averages.csv (50 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'below_national_average' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/below_national_average.csv (1357 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'reimbursement_risk_summary' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/reimbursement_risk_summary.csv (4 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'financial_impact_matrix' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/financial_impact_matrix.csv (2455 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | Exported analysis result 'rolling_state_percentile' -> /home/claude/financial-reimbursement/data/processed/analysis_exports/rolling_state_percentile.csv (2455 rows)
+2026-07-12 17:19:18 | INFO     | hvbp_pipeline | === Pipeline run completed successfully ===
