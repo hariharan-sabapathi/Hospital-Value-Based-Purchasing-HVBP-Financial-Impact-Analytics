@@ -1,173 +1,247 @@
-# Financial Reimbursement & Value-Based Purchasing Analytics
+# Hospital Value-Based Purchasing (HVBP) Financial Impact Analytics
 
-A config-driven data pipeline that identifies hospitals at risk of losing
-CMS Hospital Value-Based Purchasing (HVBP) incentive payments, ranks
-performance cohorts with SQL window functions, and maps quality gaps to a
-projected dollar impact on a Power BI dashboard.
+A production-inspired, configuration-driven healthcare analytics pipeline that processes CMS Hospital Value-Based Purchasing (HVBP) datasets to identify reimbursement risk, rank hospital performance, and estimate the financial impact of quality improvement initiatives through an interactive Power BI dashboard.
 
-## Objective
+------------------------------------------------------------------------
 
-Maximize federal incentive payouts by identifying clinical performance
-metrics that fall below CMS reimbursement thresholds, using the CMS
-Hospital VBP Total Performance Score datasets.
+## Project Overview
 
-## Architecture
+Hospitals participating in the CMS Hospital Value-Based Purchasing (HVBP) Program receive incentive payments based on clinical quality and operational performance.
 
+This project automates the ingestion, validation, transformation, and analysis of CMS HVBP datasets to identify hospitals at risk of reimbursement reductions and estimate the potential financial impact of performance gaps.
+
+------------------------------------------------------------------------
+
+## Key Features
+
+-   Automated Python ETL pipeline
+-   Configuration-driven architecture
+-   Automated data quality validation
+-   SQL analytics using CTEs and window functions
+-   Hospital performance ranking and cohort analysis
+-   Financial impact modeling for reimbursement adjustments
+-   Interactive Power BI dashboard
+-   Modular, production-ready codebase
+
+------------------------------------------------------------------------
+
+## Technology Stack
+
+-   Python
+-   SQL (SQLite, configurable for PostgreSQL/Snowflake)
+-   Power BI
+-   YAML Configuration
+-   Git
+
+------------------------------------------------------------------------
+
+## Project Architecture
+
+``` text
+CMS HVBP Dataset
+        │
+        ▼
+Python ETL Pipeline
+        │
+        ▼
+Data Cleaning & Validation
+        │
+        ▼
+Financial Impact Modeling
+        │
+        ▼
+SQL Analytics
+(CTEs • Window Functions • Rankings)
+        │
+        ▼
+Power BI Dashboard
 ```
+
+------------------------------------------------------------------------
+
+## Repository Structure
+
+``` text
 financial-reimbursement/
+│
 ├── config/
-│   └── config.yaml            # all paths, DB settings, thresholds — no hardcoding
+│   └── config.yaml
+│
 ├── data/
-│   ├── raw/                   # source CSVs (CMS export or synthetic demo data)
-│   └── processed/             # cleaned data, validation report, analysis exports
-├── logs/                      # rotating pipeline logs
-├── sql/
-│   ├── schema.sql             # DDL for the target table
-│   └── analysis.sql           # named window-function / CTE queries
-├── src/
-│   ├── settings.py            # typed config loader
-│   ├── extract.py             # raw data ingestion
-│   ├── clean.py                # standardization + merge
-│   ├── validate.py             # automated data-quality checks
-│   ├── transform.py            # risk classification + financial impact model
-│   ├── load.py                  # SQL load + analysis query execution
-│   └── utils/logger.py         # shared rotating-file logger
+│   ├── raw/
+│   ├── processed/
+│   └── analysis_exports/
+│
 ├── dashboard/
-│   ├── powerbi_power_query.m           # Power Query (M) source for Power BI
-│   └── dax_measures_and_layout.md      # DAX measures + page-by-page layout spec
+│   ├── Financial_Impact.pbix
+│   ├── powerbi_power_query.m
+│   └── dax_measures.md
+│
+├── logs/
+│   └── pipeline.log
+│
 ├── scripts/
-│   └── generate_sample_data.py  # DEV ONLY — synthetic HVBP-shaped dataset
-├── main.py                      # pipeline orchestrator
+│   └── generate_sample_data.py
+│
+├── sql/
+│   ├── schema.sql
+│   └── analysis.sql
+│
+├── src/
+│   ├── settings.py
+│   ├── extract.py
+│   ├── clean.py
+│   ├── validate.py
+│   ├── transform.py
+│   ├── load.py
+│   └── utils/
+│       └── logger.py
+│
+├── .gitignore
+├── main.py
+├── README.md
 └── requirements.txt
 ```
 
-## Data source
+------------------------------------------------------------------------
 
-Production data comes from CMS's public Provider Data Catalog:
-- Hospital VBP Total Performance Score:
-  `https://data.cms.gov/provider-data/dataset/hospital-value-based-purchasing-hvbp-total-performance-score`
-- Hospital General Information:
-  `https://data.cms.gov/provider-data/dataset/xubh-q36u`
+## Data Source
 
-Download both CSVs and place them at the paths configured in
-`config/config.yaml` (`paths.hvbp_raw_file`, `paths.hospital_info_raw_file`
-under `paths.raw_dir`). No code changes are required.
+The project uses publicly available CMS Hospital Value-Based Purchasing (HVBP) datasets from the CMS Provider Data Catalog.
 
-For local development without network access to CMS, run
-`scripts/generate_sample_data.py` first — it writes a synthetic dataset with
-the identical schema (and a few intentionally messy rows) so the full
-pipeline, including the validation layer, is exercisable end to end.
+-   Hospital Value-Based Purchasing Total Performance Score
+-   Hospital General Information
 
-**This repo has already been validated against a real CMS export**
-(`hvbp_tps-P2.csv`, FY2026, 2,455 hospitals). Real CMS files are
-self-contained — hospital name, address, city, and state are columns in the
-same file as the scores, so no separate hospital-reference file is needed.
-`src/extract.py` detects this automatically: if
-`data/raw/hospital_general_info.csv` isn't present, it treats the HVBP file
-as authoritative and `src/clean.py` skips the merge step. CMS also reports
-missing domain scores as the literal string `"Not Available"` rather than a
-blank cell; `clean._coerce_numeric()` maps that token to null before
-converting to numeric, so the validation layer's null checks catch it
-correctly.
+For local development without downloading CMS data, generate a synthetic dataset:
 
-**Threshold recalibration:** the demo dataset's scores cluster around 65,
-but real CMS Total Performance Scores cluster much lower (FY2026 file: mean
-≈ 31, 90th percentile ≈ 46.5). A fixed 60/80/90 cutoff — reasonable on a
-0–100 grading-curve assumption — would misclassify nearly every real
-hospital as "High Risk." `config/config.yaml -> financial_model.adjustment_tiers`
-is set to the FY2026 file's 25th/75th/90th percentiles instead, so risk
-tiers are relative to peer performance. When loading a new fiscal year's
-file, recompute quantiles and update the tiers:
-
-```python
-import pandas as pd
-df = pd.read_csv("data/processed/hospital_scores_processed.csv")
-print(df["total_performance_score"].quantile([0.25, 0.75, 0.90]))
+``` bash
+python scripts/generate_sample_data.py
 ```
+
+The pipeline supports both synthetic and real CMS datasets without requiring code changes.
+
+------------------------------------------------------------------------
 
 ## Setup
 
-```bash
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+``` bash
+# Clone the repository
+git clone https://github.com/<your-username>/financial-reimbursement.git
+
+# Navigate to the project directory
+cd financial-reimbursement
+
+# Install project dependencies
 pip install -r requirements.txt
 
-# Demo data (skip this step once you have real CMS exports in data/raw/)
+# (Optional) Generate sample data
 python scripts/generate_sample_data.py
 
+# Run the pipeline
 python main.py
 ```
 
-Optional flag: `python main.py --halt-on-validation-failure` aborts the run
-if any data-quality check fails instead of logging a warning and continuing.
+------------------------------------------------------------------------
 
-## What the pipeline does
+## Pipeline Workflow
 
-1. **Extract** (`src/extract.py`) — loads the raw HVBP and hospital
-   reference CSVs. `download_cms_datasets()` is a documented stub for the
-   live CMS API call in environments with network access.
-2. **Clean** (`src/clean.py`) — standardizes column names, coerces score
-   columns to numeric, de-duplicates on `provider_id`, and left-merges the
-   two source tables.
-3. **Validate** (`src/validate.py`) — an automated data-quality layer
-   that checks for missing required columns, null/duplicate provider IDs,
-   null scores, and out-of-range scores. Every run writes
-   `data/processed/validation_report.csv` for auditability; nothing is
-   silently dropped.
-4. **Transform** (`src/transform.py`) — classifies each hospital into a
-   reimbursement-risk tier and computes a projected dollar adjustment
-   using the tiers and assumed base revenue defined in `config.yaml`.
-5. **Load** (`src/load.py`) — applies `sql/schema.sql` and loads the
-   enriched dataset into a SQLite database at
-   `data/processed/hospital_scores.db` via SQLAlchemy. Swapping to
-   Postgres/Snowflake only requires changing `database.connection_string`
-   in `config.yaml`.
-6. **Analyze** — executes every named query in `sql/analysis.sql`
-   (`RANK()`, `NTILE()`, `PERCENT_RANK()`, and CTEs) and exports each
-   result to `data/processed/analysis_exports/` for the dashboard.
+### 1. Extract
 
-## SQL analyses (`sql/analysis.sql`)
+-   Load CMS HVBP datasets
+-   Read configuration from `config.yaml`
+-   Initialize logging
 
-| Query | Technique |
-|---|---|
-| `state_rank` | `RANK() OVER (PARTITION BY state ORDER BY ...)` |
-| `performance_quartiles` | `NTILE(4) OVER (...)` |
-| `rolling_state_percentile` | CTE + `PERCENT_RANK()` |
-| `below_national_average` | CTE + `CROSS JOIN` |
-| `financial_impact_matrix` | `RANK()` over projected dollar impact |
+### 2. Clean
 
-## Power BI dashboard
+-   Standardize column names
+-   Convert data types
+-   Remove duplicates
+-   Merge hospital information
 
-See `dashboard/dax_measures_and_layout.md` for the full DAX measure set and
-a three-page layout spec (Executive Summary, Performance Analysis, Financial
-Impact). Connect Power BI to `data/processed/hospital_scores_processed.csv`
-or the individual `analysis_exports/*.csv` files using
-`dashboard/powerbi_power_query.m` as a starting Power Query script.
+### 3. Validate
 
-## Assumptions used in the financial impact model
+Automatically checks for: - Missing Provider IDs - Duplicate hospitals - Missing performance scores - Invalid score ranges - Required column validation
 
-CMS's actual VBP payment-adjustment formula is proprietary to each
-hospital's base DRG payments and is not published in a simple closed form.
-This project uses a transparent, documented substitute so the *analytical
-approach* — not the exact CMS dollar figures — is what's being demonstrated:
+Validation reports are exported for auditing.
 
-| Total Performance Score | Adjustment Rate | Assumed Base Revenue |
-|---|---|---|
-| ≥ 90 | +2.0% | $10,000,000 |
-| 80–89 | +1.0% | $10,000,000 |
-| 60–79 | 0.0% | $10,000,000 |
-| < 60 | −1.0% | $10,000,000 |
+### 4. Transform
 
-Both the tiers and the base revenue figure are configurable in
-`config/config.yaml -> financial_model` and are disclosed directly on the
-dashboard.
+-   Classify reimbursement risk
+-   Calculate projected reimbursement adjustments
+-   Generate financial impact metrics
 
-## Engineering notes
+### 5. Load
 
-- All paths are resolved relative to the project root in `src/settings.py`
-  — nothing is hardcoded.
-- Every module is type-hinted and independently testable.
-- Logging is centralized through `src/utils/logger.py` with rotating file
-  handlers, configurable via `config.yaml`.
-- `sql/analysis.sql` queries are named (`-- name: <label>`) so `src/load.py`
-  can run and export each independently without string-matching hacks.
+-   Load processed data into SQLite using SQLAlchemy
+-   Easily configurable for PostgreSQL or Snowflake
+
+### 6. Analyze
+
+Execute SQL analytics using: - Common Table Expressions (CTEs) - Window Functions - Hospital Rankings - Quartile Analysis - National Performance Comparisons
+
+Results are exported for Power BI.
+
+------------------------------------------------------------------------
+
+## SQL Analytics
+
+  Analysis                   SQL Technique
+  -------------------------- ------------------
+  State Rankings             `RANK()`
+  Performance Quartiles      `NTILE()`
+  National Percentiles       `PERCENT_RANK()`
+  Below National Average     CTE
+  Financial Impact Ranking   Window Functions
+
+------------------------------------------------------------------------
+
+## Power BI Dashboard
+
+The dashboard consists of three pages:
+
+### Executive Summary
+
+-   Total Hospitals
+-   Average Performance Score
+-   Reimbursement Risk Distribution
+-   Estimated Financial Impact
+
+### Performance Analysis
+
+-   State Rankings
+-   Hospital Rankings
+-   Performance Quartiles
+-   National Benchmark Comparisons
+
+### Financial Impact
+
+-   Revenue Adjustment Matrix
+-   High-Risk Hospitals
+-   Estimated Incentive Changes
+-   Performance Gap Analysis
+
+------------------------------------------------------------------------
+
+## Financial Impact Model
+
+  Total Performance Score     Adjustment Rate
+  ------------------------- -----------------
+  ≥ 90                                  +2.0%
+  80--89                                +1.0%
+  60--79                                 0.0%
+  \< 60                                 −1.0%
+
+Adjustment tiers and assumed revenue values are configurable through `config/config.yaml`.
+
+------------------------------------------------------------------------
+
+## Engineering Highlights
+
+-   Configuration-driven architecture
+-   Modular ETL design
+-   Production-style logging
+-   Type hints throughout the codebase
+-   Relative path management
+-   PEP 8 compliant
+-   Reusable SQL analytics
+-   Production-ready project structure
